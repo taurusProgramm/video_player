@@ -12,17 +12,6 @@
     width: 100vw;
   }
 
-/* input[type='range'] {
-    -webkit-appearance: none !important;
-    background: white;
-    height:3px;
-    width: 60px;
-}
-input[type='range']::-webkit-slider-thumb {
-        -webkit-appearance: none !important;
-        background:white;
-        height:12px;
-        width:12px;
-        border-radius: 50%;
-        cursor: pointer;
-} */
+  video::-webkit-media-controls {
+    display: none;
+  }
