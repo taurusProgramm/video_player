@@ -11,17 +11,16 @@
 
         <line fill="none" 
         id="line"
-        stroke="#ffffff" 
+        stroke="transparent" 
         stroke-linecap="round" 
         stroke-linejoin="round" 
         stroke-width="2" 
         ref="line"
-        :x1="x1" 
-        :x2="x2" 
-        :y1="y1" 
-        :y2="y2"
-        :opacity="props.volume! === 0 ? 1 : 0"
-        :class="[{'mute-animation':props.volume! === 0}]"
+        x1="3" 
+        x2="21" 
+        y1="3" 
+        y2="21"
+       
         />
         
         
@@ -59,16 +58,39 @@
 </template>
 
 <script lang="ts" setup>
-import {  ref } from 'vue';
+import {  ref, watch } from 'vue';
+import { gsap } from 'gsap';
 
   const props = defineProps({
       volume:Number,
+      isMuted: Boolean,
   });
   
-  const x1 = ref(3);
-  const x2 = ref(21);
-  const y1 = ref(3);
-  const y2 = ref(21);
+  
+
+  watch(()=>props.isMuted, (value) => {
+    
+    const line = document.getElementById('line');
+    if(line instanceof SVGGeometryElement){
+      const totalLength = line.getTotalLength();
+      if(!value){
+          line.style.strokeDasharray = String(totalLength);
+          line.style.strokeDashoffset = String(0);
+          const tl = gsap.timeline();
+          tl.to(line, { strokeDashoffset: totalLength, duration: 0.3 })
+          .to(line, { stroke: 'transparent', duration: 0.001 });
+      }else{
+          line.style.strokeDasharray = String(totalLength);
+          line.style.strokeDashoffset = String(totalLength);
+          line.style.stroke = '#ffffff';
+          gsap.to(line, {
+              duration: 0.3,
+              strokeDashoffset: 0
+          })
+      }
+      
+    }
+  })
 
 
     

@@ -7,7 +7,7 @@
             </div>
           <div class="laud-box">
             <div class="sound-wrapper" @click="toggleMute">
-              <VolumeSvg :volume="props.modelValue"/>
+              <VolumeSvg :volume="props.modelValue" :is-muted="props.data.isMuted"/>
             </div>
             <input type="range" class="input-range"  min="0" max="1" step="0.1" :value="props.modelValue" @input="changeInput">
           </div>
