@@ -10,7 +10,7 @@
         step="1" 
         :value="props.value"
         :style="{
-          background: `linear-gradient(to right, #cc181e 0%, #cc181e ${props.progressPercent}%,  #444 ${props.progressPercent}%, #444 100%)`
+          background: `linear-gradient(to right, #cc181e 0%, #cc181e ${props.progressPercent}%, #858585 ${props.progressPercent}%, #858585 ${props.loadedPercent}%, #444 ${props.loadedPercent}%, #444 100%)`
         }"
         >
       </div>
@@ -20,6 +20,7 @@
     duration: {type: Number, required: true},
     isAddHideActions: Boolean,
     progressPercent: {type: Number, required: true},
+    loadedPercent: {type: Number, required: true},
     value:{type: Number, required: true},
  });
  const emits = defineEmits(['moveOnProgressBar', 'leaveProgressBar', 'handleInput',  ]);

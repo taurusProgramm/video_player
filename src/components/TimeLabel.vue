@@ -1,11 +1,16 @@
 <template>
     <div class="label-wrap" 
     :style="{
-      left: `${props.x! < 90 ? 5 : (props.offsetWidth! - props.x!) < 95 ? props.offsetWidth! -95 : props.x}px`, 
+      left: `${props.x! < 90 ? 5 : (props.offsetWidth! - props.x!) < 100 ? props.offsetWidth! -95 : (props.x!+5) }px`, 
       opacity: `${props.isMovingOnProgressBar ? 1 : 0}`,
       transform: `translateX(${props.x! < 90 ? 0: -50}%)`,
       }">
-        <div class="box"></div>
+        <div class="box" 
+        :style="{
+          'background-image': `url(${ props.url })`,
+          border: `${props.url ? '2px solid white' : 'none'}`
+        }"
+        ></div>
         <div class="label-time"  > <slot> </slot></div>
     </div>
 </template>
@@ -43,9 +48,9 @@ const props = defineProps({
   width: 100%;
   // background-color: rgb(187, 172, 172);
     // background-image: url('@/assets/goblin.jpg');
-    // background-size: cover;
-    // background-repeat: no-repeat;
-    // background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 .label-time{
       opacity: 1;

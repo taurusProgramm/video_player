@@ -6,7 +6,7 @@
       @mouseleave="handleMouseLeave" 
       >
         <video ref="videoPlayer" class="video-player" @timeupdate="getUpdate" @click="togglePlay" >
-          <source src="./assets/video/relaxation.mp4" type="video/mp4">
+          <!-- <source src="./assets/video/relaxation.mp4" type="video/mp4"> -->
         </video>
 
         <div :class="['opacity-box', {'hide': false}]" @click="togglePlay" >
@@ -15,6 +15,7 @@
         :duration="duration"
         :value="progressSlider"
         :progress-percent="progressPercent"
+        :loaded-percent="loadedPercent"
         @handle-input="handleInput"
         @leave-progress-bar="leaveProgressBar"
         @move-on-progress-bar="moveOnProgressBar"
@@ -33,6 +34,7 @@
           :x="x" 
           :is-moving-on-progress-bar="isMovingOnProgressBar"
           :offset-width="offsetWidth"
+          :url="imgUrl"
           >
             {{ timestamp }}
         </TimeLabel>
@@ -47,7 +49,8 @@ import { onMounted, ref, watch } from 'vue';
 import ActionsBar from './components/ActionsBar.vue';
 import TimeLabel from './components/TimeLabel.vue';
 import ProgressBar from './components/ProgressBar.vue';
-
+import Hls from 'hls.js';
+import axios from 'axios';
 
 
 
@@ -59,6 +62,7 @@ const volume = ref(1);
 const isMuted = ref(false);
 const progressSlider = ref(0);
 const progressPercent = ref(0);
+const loadedPercent = ref(0);
 const isAddHideActions = ref(false);
 const isCursorMoving  = ref(false);
 const timeout = ref();
@@ -69,6 +73,8 @@ const timestamp = ref('');
 const x = ref(0);
 const isMovingOnProgressBar = ref(false);
 const offsetWidth = ref(0);
+const imgUrl = ref('')
+const images = ref<string[]>([])
 
 
 const togglePlay = () => {
@@ -112,14 +118,18 @@ function moveOnProgressBar(value:any){
   offsetWidth.value = target.offsetWidth;
   const labelTime = Math.floor((value.offsetX * duration.value) / target.offsetWidth);
   timestamp.value = getCurrentTime(labelTime);
-  
+  getThumbNails(labelTime)
 }
 
 function leaveProgressBar(){
   isMovingOnProgressBar.value = false;
 }
 
-
+function getThumbNails(time: number){
+  const interval = Math.round(duration.value / images.value.length)
+  const index = Math.floor(time / interval)
+  imgUrl.value = images.value[index]
+}
 
 let lastVolume = 0;
 const toggleMute = () => {
@@ -249,42 +259,8 @@ function handleFullscreenChange(){
 
 }
 
-// function captureFrameAtTime(time: number) {
-//   return new Promise((resolve, reject) => {
-//     if (!videoPlayer2.value) {
-//       reject(new Error('Video player element is not defined'));
-//       return;
-//     }
-    
-//     const canvas = document.createElement('canvas');
-//     const context = canvas.getContext('2d');
-//     if (!context) {
-//       reject(new Error('Canvas 2D context is not supported'));
-//       return;
-//     }
-//     // Перемотайте видео к указанному времени
-//     videoPlayer2.value.currentTime = time;
-//     // Дождитесь загрузки кадра
-//     videoPlayer2.value.onloadeddata = () => {
-//       console.log('5');
-//       // Установите размеры холста такими же, как у видео
-//       canvas.width = videoPlayer.value!.videoWidth;
-//       canvas.height = videoPlayer.value!.videoHeight;
 
-//       // Отрисуйте текущий кадр видео на холст
-//       context.drawImage(videoPlayer2.value!, 0, 0, canvas.width, canvas.height);
-
-//       // Получите данные изображения в формате base64
-//       const imageDataURL = canvas.toDataURL('image/png');
-
-//       resolve(imageDataURL);
-//     };
-//   });
-// }
-
-
-
-onMounted(() => {
+onMounted(async () => {
   videoPlayer.value?.addEventListener('loadedmetadata', () => {
     duration.value = Math.round(videoPlayer.value?.duration!);
     fullTimeVideo.value = formatTime(duration.value);
@@ -292,13 +268,40 @@ onMounted(() => {
 
   wrapper.value.addEventListener('fullscreenchange', handleFullscreenChange);
  
-   
+ const response = await axios.get('http://localhost:5000/')
+ images.value = [...response.data]
+ 
+ 
 
+  // const videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+  const videoSrc = 'http://localhost:5000/video/relaxation.m3u8';
+   if(Hls.isSupported()){
+    let dur = 0
+    const hls = new Hls();
+    hls.loadSource(videoSrc);
+    hls.attachMedia(videoPlayer.value!);
+
+    
+
+    hls.on(Hls.Events.FRAG_CHANGED, (event:any, {frag})=>{
+      const fragmentEnd = Math.round(frag.end);
+      loadedPercent.value = Math.round((fragmentEnd / duration.value)*100)
+    })
+
+    // hls.on(Hls.Events.FRAG_LOADED, (event:any, data:any) => {
+    //   dur += data.frag.duration
+    //   const fragmentEnd = Math.round(data.frag.end)
+    //   loadedPercent.value = Math.round((fragmentEnd / duration.value)*100)
+    //   const fragment = data.frag;
+    //   console.log('Загружен фрагмент:', fragment);
+    //   console.log('minEndPTS: ', fragmentEnd);
+    //   console.log('Загружено: ', dur, ' секунд');
+    //   console.log('Показано: ', progressPercent.value, ' %');
+    //   console.log('Загружено: ', loadedPercent.value, ' %');
+    // });
+   }
 });
 
-// onUnmounted(() => {
-//   wrapper.value.removeEventListener('fullscreenchange', handleFullscreenChange);
-//     });
 
 </script>
 
